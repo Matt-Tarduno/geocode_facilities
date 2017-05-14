@@ -2,21 +2,17 @@
 # $virtualenv .
 # $virtualenv venv --distribute
 # $source venv/bin/activate
-# $cd Desktop/geocode
 # $pip install requests[security]
 # $pip install geocoder
 # $pip install ratelimit
-# $python
-# >>> import geocode_facilities
-# >>> geocode_facilities.do
+# $python geocode_facilities.py
 
 import geocoder
 import csv
 import time
 from ratelimit import rate_limited
 
-
-@rate_limited(0.5) #this package limits the rate of calls to google's API
+@rate_limited(5) #this package limits the rate of calls to google's API
 def do():
 	output=[]
 	with open("facilities.csv", "rU") as file:
@@ -34,14 +30,14 @@ def do():
 		g = geocoder.google(address, timeout=10.0)
 
 		#This if statement handles failures
-		#failures caused by exceeding rate limit 
+		#failures caused by exceeding rate limit / messy address names
 		if g.latlng==[]:
 			g = geocoder.google(city, timeout=10.0)
 			if g.latlng==[]:
 				lat, lng = "none", "none"
-				print "failed: ",
-				print address,
-				print g.latlng
+				#print "failed: ",
+				#print address,
+				#print g.latlng
 			else:
 				city_indicator=1
 				lat=g.latlng[0]
@@ -54,4 +50,7 @@ def do():
 	with open("facility_locations.csv", "wb") as f:
 		writer = csv.writer(f)
 		writer.writerows(output)
+
+if __name__ == '__main__':
+    do()
 
